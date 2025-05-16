@@ -1,0 +1,164 @@
+/*Alexander Fraties*/
+/* css file, based on Chania example in lab 2 
+https://www.w3schools.com/css/tryit.asp?filename=tryresponsive_breakpoints2 */
+
+/* The main class, for the grid container */
+.gridContainer {
+    /* The display bevavior of the site is a grid, so displays elements in 2D grid*/
+    display: grid;
+
+    /*The basic template of the website, while in desktop mode:*/
+    grid-template-areas:
+        'header header header'
+        'left center right';
+
+    /* Use georgia font, similar to actual look of NYT site*/
+    font-family: Georgia;
+    /* place a black line on and of page */
+    border-bottom: 3px solid black;
+    gap: 10px; /*space out grid*/
+}
+
+/* The class for the header, that has the NYT logo*/
+.header {
+    /* The item is in the center of the header, and 
+    has a line below it*/
+    grid-area: header;
+    text-align: center;
+    border-bottom: 2px solid #D9D9D9;
+
+}
+
+.date {
+    grid-area: header;
+    text-align: left;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+
+/* The class for the left column, with articles*/
+.leftColumn {
+    /* same in left column, though with addition padding 
+    and a border to right to seperate columns*/ 
+    grid-area: left;
+    text-align: center;
+    padding: 20px;
+    border-right: 1px solid #D9D9D9;
+}
+
+/* The class for the left column, with the main articles*/
+.centerColumn {
+    /* same in center column */
+    grid-area: center;
+    text-align: center;
+    padding: 20px;
+    border-right: 1px solid #D9D9D9;
+}
+
+/* The class for the left column, with articles*/
+.rightColumn {
+    /* same in right column, right border is pointless in rightmost column */
+    grid-area: right;
+    text-align: center;
+    padding: 20px;
+}
+
+/* put a border at the bottom of every article, and pad out for readability */
+article {
+    border-bottom: 1px solid #D9D9D9;
+    padding: 20px;
+}
+
+/* remove the border from the bottom of all the articles last in their columns, 
+since there is already a black bar there */
+article:last-child{
+    border-bottom: none;
+}
+
+/* the font size and color used for the paragraphs of text in the article
+ descriptions */
+p {
+    font-size: 14px;
+    color: #888888;
+}
+
+/* the specifications for all the images used in the articles. Adapted from:
+https://www.w3schools.com/howto/howto_css_image_responsive.asp */
+img {
+    width: 100%;
+    max-width: 440px;
+    height: auto;
+}
+
+/* the specifications unique to the NYT logo, so it is not too large */
+#nytimage {
+    width: 100%;
+    max-width: 410px;
+    height: auto;
+}
+
+/* the font and color for the article headers in left and right column */ 
+.articleHeader {
+    font-size: 22px;
+    color: black;
+}
+
+
+/* media query for mobile, 1 column, < 768px */
+@media only screen and (max-width: 767px) {
+    /* change the class so all three columns are combined into one*/
+    .gridContainer {    
+        grid-template-areas:
+            'header'
+            'center'
+            'left'
+            'right';
+    }
+
+    /* remove the right border from the center and left column, 
+    since it's all one column now */
+    .centerColumn, .leftColumn {
+        border-right: none;
+    }
+
+    /* put a border above left and center columns so there is one 
+    between all articles  */
+    .leftColumn, .rightColumn {
+        border-top: 1px solid #D9D9D9;
+    }
+
+    .date {
+        display: none;
+    }
+}
+
+
+/* media query tablet, 2 columns */
+@media only screen and (min-width: 768px) and (max-width: 1024px) {
+    /* change the class so it has the center column on the left, and the 
+    left and right columns both on the right*/
+    .gridContainer {
+        grid-template-areas:
+            'header header'
+            'center left'
+            'center right';
+    }
+
+    /* remove the right border from the left column, 
+    since it's part of the right column now */
+    .leftColumn {
+        border-right: none;
+    }
+
+    /* put a border above right column so there is one 
+    between all articles */
+    .rightColumn {
+        border-top: 1px solid #D9D9D9;
+    }
+
+    .date {
+        display: none;
+    }
+}
+
+

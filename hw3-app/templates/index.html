@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="../static/style.css" rel="stylesheet">
+    <script src="../static/main.js" async></script>
+    <title>The New York Times</title>
+  </head>
+  <body>
+    <!--Similar to example in lab, whole website is in grid container -->
+    <div class="gridContainer">
+
+      <!-- 
+      Image source: Wikipedia, Unknown author, uploaded by User:JC713
+      Public Domain (This work is in the public domain in the United States.)
+      Original image: https://upload.wikimedia.org/wikipedia/commons/5/58/NewYorkTimes.svg 
+      -->
+      <div class="header"> <img src="../static/assets/The_New_York_Times_logo.png" alt="The New York Times logo" id="nytimage">  </div>
+      
+      
+      <div class="date">
+        <p id="dateArea"></p>
+        <p>Today's Paper</p>
+      </div>
+
+      <!-- The leftmost column in the site, moves to right side in tablet mode and part of single column in mobile mode -->
+      <div class="leftColumn">
+        <!-- first article in left cloumn -->
+        <article>
+          <!-- 
+          Image source: Wikipedia, by Steve Swayne
+          CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/)
+          Original image: https://upload.wikimedia.org/wikipedia/commons/d/da/The_Parthenon_in_Athens.jpg 
+          -->
+          <img src="The_Parthenon_in_Athens.jpg" alt="The Parthenon">
+          <!-- the article header; I put them in a class so I can edit them all at once -->
+          <p class="articleHeader">Donec venenatis diam mauris, et dapibus ligula lacinia vel</p>
+          <p>Quisque maximus erat nunc, ac interdum ligula dapibus sit amet. Suspendisse ut felis vel 
+            lectus viverra ultricies vel at ligula. Cras orci enim, aliquet et porttitor dignissim, 
+            pharetra id urna. Aliquam in lorem consequat, laoreet justo quis, maximus metus. Phasellus 
+            dictum fermentum lacus id iaculis. Quisque tempus sollicitudin porta.</p>
+        </article>
+
+        <!-- second article in left column-->
+        <article>    
+          <p class="articleHeader">Phasellus rutrum dolor quis arcu posuere, nec ultricies quam blandit</p>
+          <p>Aenean porttitor, tellus a imperdiet finibus, nibh orci tempus sapien, vulputate feugiat 
+            massa lorem vel arcu. Duis ut ante ac dui posuere facilisis. Pellentesque laoreet mi luctus
+            aliquet aliquam. Fusce nec facilisis nibh, vel semper lectus. Aenean malesuada vestibulum
+              scelerisque. Ut vel ullamcorper felis, sit amet bibendum nulla. Vivamus sit amet auctor 
+              sapien. </p>
+        </article>
+      </div>
+
+      <!-- The center column -->
+      <div class="centerColumn">
+        <!-- first article in center column -->
+        <article>    
+          <!-- center column is main articles, so use bold text on headers -->
+          <h2>Ut congue ornare sollicitudin</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vitae lectus enim. Morbi at 
+            hendrerit erat. Praesent et hendrerit tellus, in consequat elit. Nulla vitae sollicitudin 
+            metus. Nam commodo, metus nec laoreet pretium, mi massa auctor nulla, sit amet viverra elit
+            sapien non diam. Nunc semper tincidunt urna in semper. Etiam eleifend neque nec nibh 
+            dictum, sit amet sagittis purus faucibus. Nam porta sapien libero, a hendrerit lectus 
+            tempor vitae.</p>
+        </article>
+
+        <!-- second article in center column -->
+        <article>
+          <!-- 
+          Image source: Wikipedia, by Ali Sabbagh
+          CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/deed.en)
+          Original image: https://upload.wikimedia.org/wikipedia/commons/f/f7/Notre-Dame_de_Paris%2C_4_October_2017.jpg 
+          -->
+          <img src="Notre-Dame_de_Paris,_4_October_2017.jpg" alt="Notre Dame">
+          <h2> Nunc sit amet risus et turpis tincidunt pharetra at vitae lorem </h2>
+          <p>Maecenas sem nunc, vehicula nec interdum ut, bibendum bibendum odio. Fusce nec odio 
+            sollicitudin purus hendrerit convallis. Curabitur fringilla nunc at erat eleifend, vel 
+            condimentum massa consequat. Aenean quis ex fermentum, dictum turpis mattis, rhoncus 
+            sapien. Phasellus sed rutrum velit, at eleifend tortor. Mauris consectetur, nibh sit amet 
+            rutrum aliquet, est diam ornare velit, vel porttitor diam augue quis massa. </p>
+        </article>
+      </div>
+
+      <!-- The right most column -->
+      <div class="rightColumn">
+        <!-- first article in right column-->
+        <article>
+          <!-- 
+          Image source: Wikipedia, by Yann; edited by Jim Carter
+          CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+          Original image: https://upload.wikimedia.org/wikipedia/commons/1/1d/Taj_Mahal_%28Edited%29.jpeg 
+          -->
+          <img src="Taj_Mahal_(Edited).jpeg" alt="Taj Mahal">
+          <p class="articleHeader">Pellentesque dictum, arcu sed tempus eleifend, leo erat tempor arcu</p>
+          <p>Ut mattis mauris velit, rutrum mollis erat sollicitudin sed. Donec augue est, tempor eu 
+            felis ut, sagittis viverra lectus. Proin mollis condimentum ante, ac bibendum erat 
+            ullamcorper ac. Suspendisse potenti. Nunc posuere risus vel magna commodo aliquet. Donec 
+            vel velit quis nunc dapibus mattis. Praesent sit amet convallis tellus, id tristique 
+            velit.</p>
+        </article>
+
+        <!-- second article in right column -->
+        <article>
+          <p class="articleHeader">Aenean id mauris interdum, ultrices odio vel, semper arcu</p>
+          <p>Integer rutrum diam ipsum, sit amet bibendum turpis venenatis eget. Nam id nisl dictum, 
+            vestibulum dolor id, pellentesque magna. Sed placerat dolor non metus pellentesque blandit. 
+            Donec sit amet neque a ex blandit dapibus. Aenean congue velit libero, ac gravida dolor 
+            dictum sed. Aliquam aliquet blandit enim, a condimentum enim pretium eu. </p>
+        </article>
+      </div>
+      
+    </div>
+  </body>
+</html>
