@@ -35,6 +35,12 @@ https://www.w3schools.com/css/tryit.asp?filename=tryresponsive_breakpoints2 */
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+#loginBtn {
+    grid-area: header;
+    justify-self: end;
+    align-self: center;
+}
+
 
 /* The class for the left column, with articles*/
 .leftColumn {
