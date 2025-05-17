@@ -4,10 +4,10 @@
 dotw = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-// Connect to login when the button is clicked
-document.getElementById('loginBtn').addEventListener('click', () => {
-  window.location.href = './login';
-});
+// // Connect to login when the button is clicked
+// document.getElementById('loginBtn').addEventListener('click', () => {
+//   window.location.href = './login';
+// });
 
 
 function initializeDate() {

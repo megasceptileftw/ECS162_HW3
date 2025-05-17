@@ -23,8 +23,14 @@
       <div class="date">
         <p id="dateArea"></p>
         <p>Today's Paper</p>
-        <button id="loginBtn">Log In</button>
+      {% if user %}
+          <p style="font-size: 12px;">Welcome, {{ user['email'] }}</p>
+          <a href="/logout"><button>Logout</button></a>
+        {% else %}
+          <a href="/login"><button>Log In</button></a>
+      {% endif %}
       </div>
+
 
       <!-- The leftmost column in the site, moves to right side in tablet mode and part of single column in mobile mode -->
       <div class="leftColumn">
