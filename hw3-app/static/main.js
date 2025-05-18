@@ -1,141 +1,347 @@
-// The date object in javascript gives you a number for day of the week (i.e. Sunday is 1, Monday is 2, etc.)and month (i.e. January is 1, February is 2, etc.), 
-// ^ Learned this from this website that has the methods of the date object (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
-// so we need these to convert them so they are usable for the NYT date by indexing the arrays from the value given by the date object
-dotw = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const DOTW  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTH = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// // Connect to login when the button is clicked
-// document.getElementById('loginBtn').addEventListener('click', () => {
-//   window.location.href = './login';
-// });
-
-
+//  1. Date Banner 
 function initializeDate() {
-// Getting the element that I want to add text to, found in lecture 5 slides
-let dateArea = document.getElementById("dateArea");
-// Getting the date using the date object, referenced this website to interact with it 
-let date = new Date();
-
-// Getting all of the values needed to write the date on the webpage
-let currDotw = dotw[date.getDay()];
-let currDotm = date.getDate();  
-let currMonth = month[date.getMonth()];
-let currYear = date.getFullYear();
-
-// Setting the text content of the html element to the current date
-
-dateArea.textContent = currDotw + ", " + currMonth + " " + currDotm + ", " + currYear;;
+  const el = document.getElementById("dateArea");
+  const d = new Date();
+  el.textContent = d.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
 }
 
+const accountBtn = document.getElementById("accountBtn");
+const isModerator = accountBtn && accountBtn.dataset.moderator === "true";
+if (accountBtn) {
+  accountBtn.onclick = () => openAccountSidebar(accountBtn.dataset.email);
+}
+
+
+//  2. Fetch Articles 
 function fetchArticles() {
-fetch("/api/key")
-    .then (response => {
-        if (!response.ok) {
-            throw new Error('Failed to load apiKey');
-        }
-        return response.json()
-    })
-    .then(data => {
-        const apiKey = data.apiKey;
-        // nyt api article search info: https://developer.nytimes.com/docs/articlesearch-product/1/overview
-        // location tags use this syntax: https://www.lucenetutorial.com/lucene-query-syntax.html 
-        // the Sacramento (Calif) and Davis (Calif) tags where found by inspect element in relevent nyt articles
-        const nyturl = `https://api.nytimes.com/svc/search/v2/articlesearch.json?fq=timesTag.location:"Sacramento (Calif)" OR timesTag.location:"Davis (Calif)"&api-key=` + apiKey;
-        
+  fetch("/api/articles")
+    .then(res => res.json())
+    .then(data => loadArticles(data.articles))
+    .catch(err => console.error("Article load fail:", err));
+}
 
-        fetch(nyturl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network resp not ok');
-                }
-                return response.json();
-            })
-            .then (data => {
-                console.log(data);
-                // pass the articles into the function
-                loadArticles(data.response.docs);
-            })
-            .catch(error => {
-                console.error('Error: ', error);
-            })
-    })
-    .catch(error => {
-        console.error('Error: ', error);
-    })
+//  3. Render Articles 
+let commentCounts = {};
+
+function fetchCommentCounts() {
+  return fetch("/api/comments")
+    .then(res => res.json())
+    .then(data => { commentCounts = data.counts || {}; })
+    .catch(err => console.error("Could not fetch comment counts:", err));
+}
+
+function loadArticles(articles) {
+  const [center, left, right] = [
+    ".centerColumn",
+    ".leftColumn",
+    ".rightColumn"
+  ].map(sel => document.querySelector(sel));
+
+  [center, left, right].forEach(col => col.innerHTML = "");
+
+  articles.forEach((art, i) => {
+    const col = [center, left, right][i % 3];
+    const el = document.createElement("article");
+    el.dataset.articleUrl = art.web_url;
+
+    if (art.multimedia && art.multimedia.default && art.multimedia.default.url) {
+      const img = document.createElement("img");
+      img.src = art.multimedia.default.url;
+      img.alt = art.headline && art.headline.main ? art.headline.main : "Article image";
+      el.appendChild(img);
+    }
+
+    const header = document.createElement("p");
+    header.className = "articleHeader";
+    header.textContent = art.headline.main;
+    el.appendChild(header);
+
+    const summary = document.createElement("p");
+    summary.textContent = art.abstract;
+    el.appendChild(summary);
+
+    const btn = document.createElement("button");
+    btn.className = "comment-toggle-btn";
+
+    const span = document.createElement("span");
+    span.className = "comment-count";
+    span.textContent = commentCounts[art.web_url] || 0;
+
+    btn.innerHTML = "💬 ";
+    btn.appendChild(span);
+    btn.onclick = () => openSidebar(art.web_url, art.headline.main);
+    el.appendChild(btn);
+
+    col.appendChild(el);
+  });
+}
+
+//  4. Comment Sidebar 
+let currentArticleURL = null;
+
+const sidebar      = document.getElementById("commentSidebar");
+const closeBtn     = document.getElementById("closeSidebarBtn");
+const scrollArea   = document.getElementById("commentsScrollArea");
+const commentForm  = document.getElementById("commentForm");
+const commentInput = document.getElementById("commentText");
+const sidebarTitle = document.getElementById("sidebarArticleTitle");
+
+closeBtn.onclick = () => sidebar.classList.remove("open");
+
+if (commentForm) {
+  commentForm.onsubmit = e => {
+    e.preventDefault();
+    postComment(currentArticleURL, commentInput.value.trim());
+    commentInput.value = "";
+  };
+}
+
+function openSidebar(articleURL, title = "Comments") {
+  currentArticleURL = articleURL;
+  sidebarTitle.textContent = title;
+  sidebar.classList.add("open");
+
+  // Clear scrollArea and add the heading properly
+  scrollArea.innerHTML = ""; // done before appending any children
+
+  const heading = document.createElement("h3");
+  heading.id = "commentHeading";
+
+  heading.textContent = "Comments ";
+
+  const span = document.createElement("span");
+  span.id = "commentCount";
+  span.textContent = "0";
+
+  heading.appendChild(span);
+  scrollArea.appendChild(heading);
+
+  if (commentForm) {
+    commentForm.style.display = "block";
+    scrollArea.appendChild(commentForm);
+  }
+
+  fetchComments(articleURL);
 }
 
 
-    function loadArticles(articles) {
-      // components of the nyt json shown here:
-      // https://developer.nytimes.com/docs/archive-product/1/types/Article
+function openAccountSidebar(email) {
+  currentArticleURL = null;
+  sidebarTitle.textContent = email;
+  sidebar.classList.add("open");
+
+  // Clear previous content 
+  scrollArea.innerHTML = "";
+
+  const greeting = document.createElement("p");
+  greeting.textContent = "Good afternoon.";
+  greeting.style.fontSize = "1.25rem";
+  greeting.style.fontWeight = "500";
+  greeting.style.margin = "1rem";
+  scrollArea.appendChild(greeting);
+
+  const bottomContainer = document.createElement("div");
+  bottomContainer.style.position = "absolute";
+  bottomContainer.style.bottom = "1.5rem";
+  bottomContainer.style.left = "1.5rem";
+
+  const form = document.createElement("form");
+  form.action = "/logout";
+  form.method = "get";
+
+  const button = document.createElement("button");
+  button.type = "submit";
+  button.textContent = "Log out";
+  button.style.background = "none";
+  button.style.border = "none";
+  button.style.fontWeight = "bold";
+  button.style.fontSize = "0.9rem";
+
+  form.appendChild(button);
+  bottomContainer.appendChild(form);
+  scrollArea.appendChild(bottomContainer);
+
+  if (commentForm) commentForm.style.display = "none";
+}
 
 
-      // make a columns array to hold all the columns on the page
-        var columns = [
-            // returns the first element with the class leftColumn, and so on
-            document.querySelector('.centerColumn'),
-            document.querySelector('.leftColumn'),
-            document.querySelector('.rightColumn')
-          ];
-          
-          // loop through and clear old articles from all the columns using 
-          // innerHTML, like shown in lecture 6
-          for (var i = 0; i < columns.length; i++) {
-            columns[i].innerHTML = '';
-          }
+function fetchComments(articleURL) {
+  fetch(`/api/comments?url=${encodeURIComponent(articleURL)}`)
+    .then(res => res.json())
+    .then(data => {
+      const comments = data.comments || [];
+      const totalCount = comments.reduce((acc, c) => {
+        const replyCount = (c.replies && c.replies.length) || 0;
+        return acc + 1 + replyCount;
+      }, 0);
+      document.getElementById("commentCount").textContent = totalCount;
 
-          // loop through the articles from the nty api
-          for (var i = 0; i < articles.length; i++) {
+      const oldList = document.getElementById("commentList");
+      if (oldList) oldList.remove();
 
-            // loop at the current article  
-            var article = articles[i];
-            // modulo 3 to determine what column that article should be in
-            var selectedColumn = columns[i % 3];
+      const list = document.createElement("div");
+      list.id = "commentList";
 
-            // creates a new element for the article
-            var newArticle = document.createElement('article');
+      comments.forEach(c => list.appendChild(createCommentElement(c, articleURL)));
+      scrollArea.appendChild(list);
+    })
+    .catch(err => console.error("Failed to load comments:", err));
+}
 
 
-            // check if there is a default image url in the multimedia
-            if (article.multimedia.default.url) {
-                // make new image element 
-                const img = document.createElement('img');
-                // set image source to the url
-                img.src = article.multimedia.default.url;
-                // place at end of the article
-                newArticle.appendChild(img); // Adds image before the title/description
-              }
+function createCommentElement(comment, articleURL) {
+  const item = document.createElement("div");
+  item.className = "comment-item";
+
+  const author = document.createElement("p");
+  author.className = "comment-author";
+  author.textContent = `• ${comment.user || "anonymous"}`;
+  item.appendChild(author);
+
+  const text = document.createElement("p");
+  text.className = "comment-text";
+  text.textContent = comment.moderated ? "COMMENT REMOVED BY MODERATOR!" : comment.text;
+  item.appendChild(text);
+
+  const replyForm = document.createElement("div");
+  replyForm.className = "reply-form hidden"; // hidden class in CSS should set display: none
+
+  const textarea = document.createElement("textarea");
+  textarea.placeholder = "Write a reply…";
+  replyForm.appendChild(textarea);
+
+  const replyBtn = document.createElement("button");
+  replyBtn.className = "submit-reply";
+  replyBtn.textContent = "Post";
+  replyForm.appendChild(replyBtn);
+
+  item.appendChild(replyForm);
+
+  const repliesDiv = document.createElement("div");
+  repliesDiv.className = "replies";
+  item.appendChild(repliesDiv);
+
+  item.insertBefore(createActionRow(comment, articleURL), repliesDiv);
+
+  (comment.replies || []).forEach((reply, i) => {
+    repliesDiv.appendChild(createReplyElement(reply, i, comment, articleURL));
+  });
+
+  // Reply toggle
+  item.querySelector(".reply-btn").onclick = () => {
+    replyForm.classList.toggle("hidden");
+  };
+
+  replyBtn.onclick = () => {
+    const replyText = textarea.value.trim();
+    if (!replyText) return;
+
+    fetch("/api/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        article_url: articleURL,
+        text: replyText,
+        parent_id: comment._id
+      })
+    })
+    .then(res => res.json())
+    .then(() => fetchComments(articleURL));
+  };
+
+  return item;
+}
+
+function createActionRow(comment, articleURL) {
+  const row = document.createElement("div");
+  row.className = "action-row"; // Use class for styling
+
+  const replyBtn = document.createElement("button");
+  replyBtn.textContent = "Reply";
+  replyBtn.className = "reply-btn";
+  row.appendChild(replyBtn);
+
+  if (isModerator) {
+    const modBtn = document.createElement("button");
+    modBtn.textContent = "Remove";
+    modBtn.onclick = () => {
+      fetch("/api/comments/moderate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment_id: comment._id })
+      }).then(() => fetchComments(articleURL));
+    };
+    row.appendChild(modBtn);
+  }
+
+  return row;
+}
+
+function createReplyElement(reply, index, parentComment, articleURL) {
+  const replyEl = document.createElement("div");
+  replyEl.className = "reply";
+
+  const author = document.createElement("p");
+  author.className = "comment-author";
+  author.textContent = `↳ ${reply.user}`;
+  replyEl.appendChild(author);
+
+  const text = document.createElement("p");
+  text.className = "comment-text";
+  text.textContent = reply.moderated ? "COMMENT REMOVED BY MODERATOR!" : reply.text;
+  replyEl.appendChild(text);
+
+  if (isModerator) {
+    const modBtn = document.createElement("button");
+    modBtn.textContent = "Remove";
+    modBtn.className = "moderate-btn";
+    modBtn.onclick = () => {
+      fetch("/api/comments/moderate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parent_id: parentComment._id,
+          reply_index: index
+        })
+      }).then(() => fetchComments(articleURL));
+    };
+
+    const actionRow = document.createElement("div");
+    actionRow.className = "action-row"; // class defined in CSS
+    actionRow.appendChild(modBtn);
+    replyEl.appendChild(actionRow);
+  }
+
+  return replyEl;
+}
 
 
-              
-            // make a new element for the article title
-            var title = document.createElement('p');
-            // set the title to the article header class from index.html
-            title.className = 'articleHeader';
-            // set the text content to the main headline
-            title.textContent = article.headline.main;
-            // places the title at the end of the article element
-            newArticle.appendChild(title);
+function postComment(articleURL, text) {
+  fetch("/api/comments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ article_url: articleURL, text })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Post failed");
+      return res.json();
+    })
+    .then(() => fetchComments(articleURL))
+    .catch(() => alert("Could not post comment."));
+}
 
-            // make a new paragraph to hold the article description
-            var description = document.createElement('p');
-            // set the description text to the abstract from nyt
-            description.textContent = article.abstract;
-            // places the paragrpah at the end of the article element
-            newArticle.appendChild(description);
-            // places the article at the end of the column element
-            selectedColumn.appendChild(newArticle);
-          }
-      }
-
-      // nneded for jest; checks if a module exists 
-      if (typeof module !== 'undefined') {
-        module.exports = {
-          loadArticles,
-          initializeDate,
-          fetchArticles
-        };
-      } else { // if not, run these as normal
-        initializeDate(); 
-        fetchArticles();
-      }
+// ---------- 5. Init ----------
+if (typeof module !== "undefined") {
+  module.exports = { initializeDate, fetchArticles, loadArticles };
+} else {
+  initializeDate();
+  fetchCommentCounts().then(fetchArticles);
+}

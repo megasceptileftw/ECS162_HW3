@@ -8,7 +8,12 @@
     <script src="../static/main.js" async></script>
     <title>The New York Times</title>
   </head>
+
+
   <body>
+
+    
+    
     <!--Similar to example in lab, whole website is in grid container -->
     <div class="gridContainer">
 
@@ -20,16 +25,34 @@
       <div class="header"> <img src="../static/assets/The_New_York_Times_logo.png" alt="The New York Times logo" id="nytimage">  </div>
       
       
-      <div class="date">
-        <p id="dateArea"></p>
-        <p>Today's Paper</p>
-      {% if user %}
-          <p style="font-size: 12px;">Welcome, {{ user['email'] }}</p>
-          <a href="/logout"><button>Logout</button></a>
-        {% else %}
-          <a href="/login"><button>Log In</button></a>
+<div class="date">
+  <div class="dateInfo">
+    <p id="dateArea"></p>
+    <p>Today's Paper</p>
+  </div>
+  <div class="loginControls">
+    {% if user %}
+      {% if is_moderator %}
+        <button id="accountBtn"
+                data-email="{{ user.email }}"
+                data-moderator="true">
+          Account
+        </button>
+      {% else %}
+        <button id="accountBtn"
+                data-email="{{ user.email }}"
+                data-moderator="false">
+          Account
+        </button>
       {% endif %}
-      </div>
+    {% else %}
+      <a href="/login" class="button-link">Log In</a>
+    {% endif %}
+  </div>
+</div>
+
+
+
 
 
       <!-- The leftmost column in the site, moves to right side in tablet mode and part of single column in mobile mode -->
@@ -121,5 +144,26 @@
       </div>
       
     </div>
-  </body>
+
+<!-- ─────────  GLOBAL COMMENT SIDEBAR  ───────── -->
+<div id="commentSidebar" class="comment-sidebar">
+  <div class="sidebar-header">
+    <span id="sidebarArticleTitle">Comments</span>
+    <button id="closeSidebarBtn">✕</button>
+  </div>
+
+  <div id="commentsScrollArea" class="comments-scroll"></div>
+
+  {% if user %}
+    <form id="commentForm">
+      <textarea id="commentText" placeholder="Share your thoughts…" required></textarea>
+      <button type="submit">Post</button>
+    </form>
+  {% else %}
+    <p class="login-reminder">Log in to comment.</p>
+  {% endif %}
+</div>
+
+
+</body>
 </html>
