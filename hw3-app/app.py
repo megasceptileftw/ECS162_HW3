@@ -76,9 +76,6 @@ def logout():
     session.clear()
     return redirect('/')
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000)
-
 @app.route('/api/comments')
 def get_comments():
     url = request.args.get('url')
@@ -191,3 +188,6 @@ def moderate_comment():
         return jsonify({'error': 'Comment not found'}), 404
 
     return jsonify({'ok': True})
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8000)

@@ -94,7 +94,9 @@ const commentForm  = document.getElementById("commentForm");
 const commentInput = document.getElementById("commentText");
 const sidebarTitle = document.getElementById("sidebarArticleTitle");
 
-closeBtn.onclick = () => sidebar.classList.remove("open");
+if (closeBtn) {
+  closeBtn.onclick = () => sidebar.classList.remove("open");
+}
 
 if (commentForm) {
   commentForm.onsubmit = e => {
@@ -254,7 +256,11 @@ function createCommentElement(comment, articleURL) {
       })
     })
     .then(res => res.json())
-    .then(() => fetchComments(articleURL));
+    .then(() => {
+      fetchComments(articleURL);
+      return fetchCommentCounts().then(fetchArticles);
+      return 
+    });
   };
 
   return item;
@@ -334,13 +340,16 @@ function postComment(articleURL, text) {
       if (!res.ok) throw new Error("Post failed");
       return res.json();
     })
-    .then(() => fetchComments(articleURL))
+    .then(() => {
+      fetchComments(articleURL);
+      return fetchCommentCounts().then(fetchArticles);
+    })
     .catch(() => alert("Could not post comment."));
 }
 
 // ---------- 5. Init ----------
 if (typeof module !== "undefined") {
-  module.exports = { initializeDate, fetchArticles, loadArticles };
+  module.exports = { initializeDate, fetchArticles, loadArticles, createCommentElement};
 } else {
   initializeDate();
   fetchCommentCounts().then(fetchArticles);

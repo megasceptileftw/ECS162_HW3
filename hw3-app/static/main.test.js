@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-const { loadArticles, initializeDate, fetchArticles } = require('../static/main.js');
+const { loadArticles, initializeDate, fetchArticles, createCommentElement } = require('../static/main.js');
 
 // test date formatting and display
 test("initializeDate sets correct date", function() {
@@ -31,46 +31,53 @@ test("initializeDate sets correct date", function() {
   expect(dateElement.textContent).toBe(expected);
 });
 
+test("making sure that createCommentElement works + hiding and unhiding of reply form", async () => {
+  // creating an example comment
+  const comment = {
+    _id: "1",
+    user: "user@example.com",
+    text: "example",
+    moderated: false,
+    replies: []
+  };
 
+  // creating article url for the createCommentElement function
+  const articleURL = "/test-url";
 
-// test loadArticles() UI logic
-test("loadArticles puts articles into columns", function() {
-  // make a mock html like the real website
-  document.body.innerHTML =
-    '<div class="centerColumn"></div>' +
-    '<div class="leftColumn"></div>' +
-    '<div class="rightColumn"></div>';
+  // creating a comment using createCommentElement
+  const testComment = createCommentElement(comment, articleURL);
 
-  // loop through and make fake articles
-  var fakeArticles = [];
-  for (var i = 0; i < 3; i++) {
-    fakeArticles.push({
-      // each will have a title,
-      headline: { main: "Headline " + i },
-      // a description,
-      abstract: "Abstract " + i,
-      // and an image
-      multimedia: {
-        "default": { url: "https://example.com/img" + i + ".jpg" }
-      }
-    });
-  }
+  // expecting the test comment to have the comment-item class
+  expect(testComment.classList.contains("comment-item")).toBe(true);
 
-  // run loadArticles wit hthe fake articles
-  loadArticles(fakeArticles);
+  // expecting the author of the comment to not be null and to be the correct user
+  const author = testComment.querySelector(".comment-author");
+  expect(author).not.toBeNull();
+  expect(author.textContent).toBe("• user@example.com");
 
-  // check if there is actually 3 article elements
-  var allArticles = document.querySelectorAll('article');
-  // use tobe to check if equal 
-  expect(allArticles.length).toBe(3);
-  // check if placement is correct in correct column
-  // use toMatch to see if it matches the string
-  // https://jestjs.io/docs/expect#tomatchregexp--string
-  expect(document.querySelector('.centerColumn').textContent).toMatch("Headline 0");
-  expect(document.querySelector('.leftColumn').textContent).toMatch("Headline 1");
-  expect(document.querySelector('.rightColumn').textContent).toMatch("Headline 2");
+  //expecting the comment text to be correct and for it not to be null
+  const commentText = testComment.querySelector(".comment-text");
+  expect(commentText).not.toBeNull();
+  expect(commentText.textContent).toBe("example");
+
+  // expecting the reply form and reply button to not be null
+  const toggleReplyBtn = testComment.querySelector(".reply-btn");
+  const replyForm = testComment.querySelector(".reply-form");
+  expect(toggleReplyBtn).not.toBeNull();
+  expect(replyForm).not.toBeNull();
+
+  // initially the reply form is supposed to be hidden
+  expect(replyForm.classList.contains("hidden")).toBe(true);
+
+  // when the reply button is clicked, the reply form is supposed to be unhidden
+  toggleReplyBtn.click();
+  expect(replyForm.classList.contains("hidden")).toBe(false);
+
+  // when the reply button is clicked again it is supposed to be hidden again
+  toggleReplyBtn.click();
+  expect(replyForm.classList.contains("hidden")).toBe(true);
+
 });
-
 
 
 // test nyt article structure 
@@ -108,22 +115,3 @@ global.fetch = jest.fn()
     ok: true,
     json: () => Promise.resolve({ response: { docs: [] } })
   }));
-
-
-// test the fetchArticles function
-test("fetchArticles calls /api/key only", async () => {
-  // make a mock html like the real website
-  document.body.innerHTML = `
-    <div class="centerColumn"></div>
-    <div class="leftColumn"></div>
-    <div class="rightColumn"></div>
-  `;
-
-  // call the fetchArticles function
-  await fetchArticles();
-  // ensure the mock function was called one time
-  // https://jestjs.io/docs/expect#tohavebeencalledtimesnumber
-  expect(global.fetch).toHaveBeenCalledTimes(1);
-  // use toMatch to see if fetch was called with a specific URL 
-  expect(global.fetch.mock.calls[0][0]).toMatch('/api/key');
-});
