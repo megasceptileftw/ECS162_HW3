@@ -37,9 +37,11 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'}
 )
 
+# Utility function to check if user is moderator
 def is_moderator(user: dict) -> bool:
     return user is not None and user.get("email") == "moderator@hw3.com"
 
+# Route for homepage and renders index.html with user info
 @app.route('/')
 def index():
     user = session.get('user')
@@ -76,6 +78,7 @@ def logout():
     session.clear()
     return redirect('/')
 
+# Route to fetch comments/comment counts
 @app.route('/api/comments')
 def get_comments():
     url = request.args.get('url')
@@ -87,7 +90,7 @@ def get_comments():
         # Get comments for a single article
         comment_list = list(comments.find({'article_url': url}).sort('timestamp'))
         for c in comment_list:
-            c['_id'] = str(c['_id'])
+            c['_id'] = str(c['_id']) # This turns ObjectId into a string for the JSON
         return jsonify({'comments': comment_list})
     else:
         # Count comments + replies per article
@@ -101,20 +104,22 @@ def get_comments():
 
         return jsonify({'counts': counts})
 
+# Route to submit new comments/replies
 @app.route('/api/comments', methods=['POST'])
 def post_comment():
     user = session.get('user')
     if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'error': 'Unauthorized'}), 401 # Must be logged in to comment
 
     data = request.get_json()  # safer style shown in lectures
     article_url = data.get('article_url')
     text = data.get('text')
-    parent_id = data.get('parent_id')
+    parent_id = data.get('parent_id') # parent_id only exists if it is a reply
 
     if not article_url or not text:
         return jsonify({'error': 'Missing fields'}), 400
 
+    # Comment object format
     comment = {
         'article_url': article_url,
         'text': text,
@@ -123,6 +128,7 @@ def post_comment():
         'moderated': False
     }
 
+    # Adds this comment as a reply to existing comment
     if parent_id:
         result = comments.update_one(
             {'_id': ObjectId(parent_id)},
@@ -132,10 +138,11 @@ def post_comment():
             return jsonify({'error': 'Parent comment not found'}), 404
         return jsonify({'ok': True})
 
+    # Inserts new main comment (not a reply)
     result = comments.insert_one(comment)
     return jsonify({'ok': True, 'id': str(result.inserted_id)}), 201
 
-
+# Route to fetch articles from NYT API filtered by location/time
 @app.route('/api/articles')
 def get_articles():
     # This constant could be moved to the top of the file like BASE_URL
@@ -154,7 +161,7 @@ def get_articles():
     articles = response.json().get('response', {}).get('docs', [])
     return jsonify({'articles': articles})
 
-
+# Route to moderate comments
 @app.route('/api/comments/moderate', methods=['POST'])
 def moderate_comment():
     user = session.get('user')

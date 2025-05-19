@@ -24,20 +24,25 @@
       -->
       <div class="header"> <img src="../static/assets/The_New_York_Times_logo.png" alt="The New York Times logo" id="nytimage">  </div>
       
-      
+<!-- Container for the date and header section of the page -->
 <div class="date">
+  <!-- Left side that contains the date and "Today's Paper" text -->
   <div class="dateInfo">
-    <p id="dateArea"></p>
+    <p id="dateArea"></p>    <!-- Date from javascript -->
     <p>Today's Paper</p>
   </div>
+  <!-- Right side of the page that shows either log in button based on authentication -->
   <div class="loginControls">
+    <!-- if user shows that someone is signed in -->
     {% if user %}
+    <!-- if the user is a moderator, data-moderator will be true, allows for moderation for that user -->
       {% if is_moderator %}
         <button id="accountBtn"
                 data-email="{{ user.email }}"
                 data-moderator="true">
           Account
         </button>
+      <!-- if the user is not a moderator, they are a normal user and do not have moderation abilites, so data-moderator is false -->
       {% else %}
         <button id="accountBtn"
                 data-email="{{ user.email }}"
@@ -45,6 +50,7 @@
           Account
         </button>
       {% endif %}
+    <!-- If there is no user, the website has the log in button and people can log in -->
     {% else %}
       <a href="/login" class="button-link">Log In</a>
     {% endif %}
@@ -147,7 +153,9 @@
 
 <!-- ─────────  GLOBAL COMMENT SIDEBAR  ───────── -->
 <div id="commentSidebar" class="comment-sidebar">
+  <!-- Header of sidebar -->
   <div class="sidebar-header">
+    <!-- The name of the article in the sidebar and Comments text -->
     <span id="sidebarArticleTitle">Comments</span>
     <button id="closeSidebarBtn">✕</button>
   </div>
@@ -155,11 +163,13 @@
   <div id="commentsScrollArea" class="comments-scroll"></div>
 
   {% if user %}
+    <!-- If there is a user, the comment form shows up and people can comment/reply -->
     <form id="commentForm">
       <textarea id="commentText" placeholder="Share your thoughts…" required></textarea>
       <button type="submit">Post</button>
     </form>
   {% else %}
+    <!-- If not logged in, reminder to log in in order to comment on posts -->
     <p class="login-reminder">Log in to comment.</p>
   {% endif %}
 </div>
